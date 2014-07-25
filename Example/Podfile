@@ -1,0 +1,10 @@
+target 'CloudIt', :exclusive => true do
+  pod "CloudIt", :path => "../"
+end
+
+target 'Tests', :exclusive => true do
+  pod "CloudIt", :path => "../"
+
+  pod 'Specta', '~> 0.2.1'
+  pod 'Expecta'
+end
