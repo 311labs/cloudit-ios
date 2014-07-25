@@ -1,9 +1,6 @@
 # CloudIt
 
-[![CI Status](http://img.shields.io/travis/istarnes/CloudIt.svg?style=flat)](https://travis-ci.org/istarnes/CloudIt)
-[![Version](https://img.shields.io/cocoapods/v/CloudIt.svg?style=flat)](http://cocoadocs.org/docsets/CloudIt)
-[![License](https://img.shields.io/cocoapods/l/CloudIt.svg?style=flat)](http://cocoadocs.org/docsets/CloudIt)
-[![Platform](https://img.shields.io/cocoapods/p/CloudIt.svg?style=flat)](http://cocoadocs.org/docsets/CloudIt)
+CloudIt-IOS is an IOS SDK for accessing 311Labs CloudIt solutions.
 
 ## Usage
 
