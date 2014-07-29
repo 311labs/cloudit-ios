@@ -7,6 +7,7 @@
 //
 
 #import "CIVideoRendition.h"
+#import "CIVideo.h"
 
 @implementation CIVideoRendition
 

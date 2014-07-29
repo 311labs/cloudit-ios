@@ -39,7 +39,6 @@
 //    }
 
 #import <Foundation/Foundation.h>
-#import <GooglePlus/GooglePlus.h>
 
 #import "CIAuthProvider.h"
 

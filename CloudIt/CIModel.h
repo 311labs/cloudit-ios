@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "CIEXT.h"
 #import "CloudItService.h"
 
 @interface CIModel : NSObject<NSCoding, NSCopying>
@@ -19,7 +20,7 @@
 @property(readonly) NSNumber *key;
 
 // flag if the model is in the middle of updating
-@property(readonly) BOOL *isUpdating;
+@property(assign) BOOL isUpdating;
 
 // the rpc path that this model uses
 +(NSString*)rpcPath;

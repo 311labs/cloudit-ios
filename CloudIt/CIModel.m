@@ -24,12 +24,12 @@
 // fetch a single object
 +(void)fetch:(int)key onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
-    
+//    [[CloudItService shared] fetch: [CIModel class] withKey: key onSuccess: successBlock onFailure: failBlock];
 }
 // fetch a list of objects
 +(void)fetchList:(NSDictionary*)params onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
-    
+//    [[CloudItService shared] fetchList: [CIModel class] params: params onSuccess: successBlock onFailure: failBlock];
 }
 
 + (NSMutableDictionary*)shared {
@@ -58,6 +58,7 @@
 -(id)initBlank
 {
     self = [super init];
+    self.isUpdating = NO;
     if (self)
     {
         self.data = [NSMutableDictionary dictionary];
@@ -67,6 +68,7 @@
 
 -(id)initWithData:(NSMutableDictionary*)data
 {
+    self.isUpdating = NO;
     [self loadData:data];
     return self;
 }
@@ -125,15 +127,19 @@
 // fetch the latest version of this object from the server
 -(void)refresh:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
+    self.isUpdating = YES;
+    NSLog(@"path: %@", self.path);
     self.activeTask = [[CloudItService shared] GET:self.path params:nil onSuccess:^(CloudItResponse *response) {
         // update data
-        self.data = response.data;
+        self.isUpdating = NO;
+        [self loadData:response.data];
         response.model = self;
         if (self.activeTask) {
             self.activeTask = nil;
         }
         successBlock(response);
     } onFailure:^(NSError *error) {
+        self.isUpdating = NO;
         if (self.activeTask) {
             self.activeTask = nil;
         }
@@ -144,6 +150,7 @@
 
 -(void)cancel
 {
+    self.isUpdating = NO;
     [[CloudItService shared] cancelRequestsWithPath:self.path];
     if (self.activeTask) {
         [self.activeTask cancel];

@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "CloudItResponse.h"
+#import "AFNetworking.h"
 
 typedef void (^CloudItSuccessCallback)(CloudItResponse *response);
 typedef void (^CloudItFailureCallback)(NSError *error);

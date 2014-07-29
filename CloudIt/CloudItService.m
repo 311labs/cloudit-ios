@@ -238,13 +238,19 @@
     [request setValue:self.host forHTTPHeaderField:@"Referer"];
     [request setValue:@"application/json, text/javascript, */*; q=0.01" forHTTPHeaderField:@"Accept"];
     
+    if (model == nil) {
+        model = [CIModel class];
+    }
+    
     AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
     AFHTTPRequestOperation *operation =
     [manager HTTPRequestOperationWithRequest:request
                                      success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                                         successBlock([[CloudItResponse new] initWithClass:model andResponse:responseObject]);
                                          NSLog(@"Success %@", responseObject);
                                      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                                          NSLog(@"Failure %@", error.description);
+                                         failBlock(error);
                                      }];
     
     // 4. Set the progress block of the operation.
