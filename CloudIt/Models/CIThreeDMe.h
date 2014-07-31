@@ -8,6 +8,9 @@
 #import <Foundation/Foundation.h>
 #import "CIModel.h"
 
+typedef void (^CIThreeDMeSuccessCallback)();
+typedef void (^CIThreeDMeFailureCallback)(NSString *error);
+
 @interface CIThreeDMe : CIModel
 
 -(id)initWithImage:(UIImage*)image;
@@ -16,6 +19,10 @@
 
 @property (readonly) NSString* title;
 @property (readonly) NSString* uuid;
+
+@property (readonly) NSString* gender;
+@property (readonly) NSString* race;
+@property (readonly) NSNumber* age;
 
 @property (nonatomic) NSString* remoteImagePath;
 @property (nonatomic) NSString* remoteBundlePath;
@@ -44,6 +51,9 @@
 -(BOOL)detectFaces;
 // save the avatar to disk
 -(void)save;
+// delete the avatar from local disk
+-(void)deleteLocal;
+
 // configure the paths
 -(void)configurePaths;
 
@@ -51,15 +61,15 @@
 // 1. send the image to the server
 // 2. wait for rendering 
 // 3. download the result
--(void)render:(CloudItSuccessCallback)uploadBlock 
-	onSuccess:(CloudItSuccessCallback)successBlock 
-	onFailure:(CloudItFailureCallback)failBlock 
-	progress:(CloudItProgressCallback)progressBlock;
+//-(void)render:(CIThreeDMeSuccessCallback)uploadBlock
+//	onSuccess:(CIThreeDMeSuccessCallback)successBlock
+//	onFailure:(CIThreeDMeFailureCallback)failBlock 
+//	progress:(CloudItProgressCallback)progressBlock;
 
 // upload the image for rendering
 -(AFHTTPRequestOperation*)upload:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock progress:(CloudItProgressCallback)progressBlock;
 // wait for processing to be complete
--(void)waitForProcessing:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
+-(void)waitForProcessing:(CIThreeDMeSuccessCallback)successBlock onFailure:(CIThreeDMeFailureCallback)failBlock;
 // use this to download the bundle
 -(AFHTTPRequestOperation*)download:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 

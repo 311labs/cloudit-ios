@@ -30,8 +30,9 @@ Pod::Spec.new do |s|
   # s.resources = 'Pod/Assets/*.png'
 
   s.public_header_files = 'CloudIt/*.h', 'CloudIt/Helpers/*.h', 'CloudIt/Models/*.h', 'CloudIt/Social/*.h'
-  # s.ios.frameworks = 'MobileCoreServices', 'CoreGraphics', 'Security'
+  s.ios.frameworks = 'MobileCoreServices', 'CoreGraphics', 'Security'
   s.dependency 'AFNetworking', '~> 2.3'
   s.dependency 'Facebook-iOS-SDK', '~> 3.16'
   s.dependency 'google-plus-ios-sdk', '~> 1.5'
+  s.dependency 'SSZipArchive', '~> 0.3'
 end

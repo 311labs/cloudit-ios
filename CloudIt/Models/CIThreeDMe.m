@@ -1,18 +1,19 @@
-#import "ThreeDMe.h"
+#import "CIThreeDMe.h"
 #import <SSZipArchive.h>
 
-@interface ThreeDMe()
+@interface CIThreeDMe()
 @property(retain) CIDetector* faceDetector;
 @property(assign) int faceCount;
 
-@property(copy) CloudItSuccessCallback renderSuccessCallback;
-@property(copy) CloudItFailureCallback renderFailCallback;
+@property(copy) CIThreeDMeSuccessCallback renderSuccessCallback;
+@property(copy) CIThreeDMeFailureCallback renderFailCallback;
 
 @property (retain) NSThread* renderThread;
+@property (retain) NSString* lastError;
 
 @end
 
-@implementation ThreeDMe
+@implementation CIThreeDMe
 
 +(NSString*) rpcPath
 {
@@ -22,12 +23,12 @@
 // fetch a single object
 +(void)fetch:(int)key onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
-    [[CloudItService shared] fetch: [FaceItBundle class] withKey: key onSuccess: successBlock onFailure: failBlock];
+    [[CloudItService shared] fetch: [CIThreeDMe class] withKey: key onSuccess: successBlock onFailure: failBlock];
 }
 // fetch a list of objects
 +(void)fetchList:(NSDictionary*)params onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
-    [[CloudItService shared] fetchList: [FaceItBundle class] params: params onSuccess: successBlock onFailure: failBlock];
+    [[CloudItService shared] fetchList: [CIThreeDMe class] params: params onSuccess: successBlock onFailure: failBlock];
 }
 
 -(id)initWithImage:(UIImage *)image
@@ -42,9 +43,11 @@
     {
         self.image = image;
         self.name = name;
+        self.data = [NSMutableDictionary dictionary];
         if (self.name == nil)
         {
             self.name = [[NSUUID UUID] UUIDString];
+            [self setValue:self.name forKey:@"uuid"];
         }
         
         [self configurePaths];
@@ -55,7 +58,19 @@
 -(void)loadData:(id)data
 {
     [super loadData:data];
-    self.name = self.title;
+    NSLog(@"data: %@", data);
+    if (self.title)
+    {
+        NSLog(@"title: %@", self.title);
+        NSUInteger numberOfOccurrences = [[self.title componentsSeparatedByString:@"-"] count] - 1;
+        if (numberOfOccurrences > 1)
+        {
+            [self setValue:self.title forKey:@"uuid"];
+            [self setValue:@"SET NAME" forKey:@"title"];
+        }
+    }
+    
+    self.name = self.uuid;
     [self configurePaths];
     
     NSDictionary* media = (NSDictionary*)[self objectForKey:@"media"];
@@ -85,6 +100,21 @@
     return [self.data objectForKey:@"uuid"];
 }
 
+-(NSString*) gender
+{
+    return [self.data objectForKey:@"gender"];
+}
+
+-(NSString*) race
+{
+    return [self.data objectForKey:@"race"];
+}
+
+-(NSNumber*) age
+{
+    return [self.data objectForKey:@"age"];
+}
+
 -(NSNumber*) state
 {
     return [self.data objectForKey:@"state"];
@@ -103,35 +133,44 @@
 
 -(void)checkIfProcessed
 {
+    // TODO see if is updating?
     [self refresh:^(CloudItResponse *response) {
         // response
-        if (self.isReady)
-        {
-            self.renderSuccessCallback(response);
-        } else if (!self.isProcessing) {
-        	self.renderSuccessCallback(response);
-        }
-
+        
     } onFailure:^(NSError *error) {
         // error
-        NSLog(@"error %@", error);
-        self.renderFailCallback(error);
+        self.lastError = [error localizedDescription];
     }];
 }
 
 -(void)waitForRender
 {
-	while (YES)
+	while (self.isProcessing)
     {
         [NSThread sleepForTimeInterval:5.0];
         [self checkIfProcessed];
-        if (!self.isProcessing) {
-            return;
-        }
+    }
+    
+    // check if we can download
+    if (self.isReady)
+    {
+        // this means we have are rendered and just need to download it
+        [self download:^(CloudItResponse *response) {
+            // download complete
+            self.renderSuccessCallback();
+        } onFailure:^(NSError *error) {
+            // failed
+            self.lastError = [error localizedDescription];
+            self.renderFailCallback(self.lastError);
+        }];
+        
+    } else {
+        // this means something went wrong.. check last error
+        self.renderFailCallback(self.lastError);
     }
 }
 
--(void)waitForProcessing:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
+-(void)waitForProcessing:(CIThreeDMeSuccessCallback)successBlock onFailure:(CIThreeDMeFailureCallback)failBlock
 {
 	self.renderFailCallback = failBlock;
 	self.renderSuccessCallback = successBlock;
@@ -153,7 +192,7 @@
     NSURL *URL = [NSURL URLWithString:self.remoteBundlePath];
     NSURLRequest *request = [NSURLRequest requestWithURL:URL];
     
-    
+    self.isUpdating = YES;
     AFHTTPRequestOperation *downloadRequest = [[AFHTTPRequestOperation alloc] initWithRequest:request];
 
     [self createPaths];
@@ -165,6 +204,7 @@
     [downloadRequest setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         // here we must create NSData object with received data...
         [SSZipArchive unzipFileAtPath:path toDestination:self.localPath];
+        self.isUpdating = NO;
         if (self.isContentDownloaded)
         {
             // unzip worked!
@@ -177,6 +217,7 @@
         }
     } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
         NSLog(@"file downloading error : %@", [error localizedDescription]);
+        self.isUpdating = NO;
         failBlock(error);
     }];
     
@@ -383,6 +424,16 @@
     }
 }
 
+-(void)deleteLocal
+{
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    BOOL success = [fileManager removeItemAtPath:self.localPath error:nil];
+    if (!success)
+    {
+        NSLog(@"Failed to remove avatar folder");
+    }
+}
+
 -(void)save
 {
 
@@ -408,11 +459,17 @@
 -(AFHTTPRequestOperation*)upload:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock progress:(CloudItProgressCallback)progressBlock
 {
     NSMutableDictionary *params = [@{
-                                     @"title" : self.name,
+                                     @"title" : self.title,
+                                     @"uuid": self.name
                                      } mutableCopy];
     NSDictionary* files = @{@"picture":@{@"filename":@"face.jpg", @"path":self.imagePath}};
     
-    return [[CloudItService shared] UPLOAD:@"rpc/threed/faceme" files:files params:params onSuccess:successBlock onFailure:failBlock onProgress:progressBlock];
+    return [[CloudItService shared] UPLOAD:@"rpc/threed/faceme" files:files params:params onSuccess:^(CloudItResponse *response) {
+        // the data should be the new object
+        [self loadData:response.data];
+        response.model = self;
+        successBlock(response);
+    } onFailure:failBlock onProgress:progressBlock];
 }
 
 @end

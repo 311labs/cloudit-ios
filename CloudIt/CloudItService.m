@@ -133,6 +133,7 @@
         }
         if (httpResponse.statusCode == 200) {
             [self updateCSRF:responseObject];
+            NSLog(@"response: %@", responseObject);
             if (model) {
                 successBlock([[CloudItResponse new] initWithClass:model andResponse:responseObject]);
             } else {
@@ -228,7 +229,7 @@
     NSString *urlString = [NSString stringWithFormat:@"%@/%@", self.host, path];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     [request setValue:[NSString stringWithFormat:@"multipart/form-data; boundary=%@", [body boundary]] forHTTPHeaderField:@"Content-Type"];
-    [request setValue:[NSString stringWithFormat:@"%d", [body length]] forHTTPHeaderField:@"Content-Length"];
+    [request setValue:[NSString stringWithFormat:@"%lu", (unsigned long)[body length]] forHTTPHeaderField:@"Content-Length"];
     [request setValue:self.csrf_token forHTTPHeaderField:@"X-CSRFToken"];
     [request setHTTPBodyStream:body];
     [request setHTTPMethod:@"POST"];

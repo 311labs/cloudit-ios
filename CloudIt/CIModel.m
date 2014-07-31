@@ -79,6 +79,9 @@
         self.data = data;
     } else if ([data isKindOfClass:[NSDictionary class]]) {
         self.data = [(NSDictionary*)data mutableCopy];
+    } else if (data == nil) {
+        NSLog(@"WARNING CIModel loadData should not be nil");
+        self.data = [NSMutableDictionary dictionary];
     }
 }
 
@@ -162,7 +165,10 @@
 {
     [[CloudItService shared] POST:self.path params:changes onSuccess:^(CloudItResponse *response) {
         // update data
-        self.data = response.data;
+        // the server does not always return the updates object
+        for (NSString* key in changes) {
+            [self setValue:changes[key] forKey:key];
+        }
         successBlock(response);
     } onFailure:^(NSError *error) {
         // push error
