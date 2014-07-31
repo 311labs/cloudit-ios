@@ -14,6 +14,21 @@ To run the example project, clone the repo, and run `pod install` from the Examp
     
     There are some issues with google sdk not being included correctly.
     
+## Example Usage
+
+    // initialize the singleton to the correct host normally in your appdelegate at start
+    self.cloudit = [[CloudItService shared] initWithHost:@"https://pdir.tv"];
+    // recommend allowing duplicate requests for now until we sort out bugs
+    [self.cloudit setDuplicateRequestPolicy:DUP_REQ_ALLOW];
+    // recommend doing a dummy call to the site to get CSRF tokens
+    // you can ignore the results
+    [[CloudItAccount shared] checkIfAuthenticated:^(CloudItResponse *response) {
+        // check authenticated
+        
+    } onFailure:^(NSError *error) {
+        // request failed?
+    }];
+    
 ## Author
 
 istarnes, ian@311labs.com
