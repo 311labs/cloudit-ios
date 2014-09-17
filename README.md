@@ -13,6 +13,8 @@ To run the example project, clone the repo, and run `pod install` from the Examp
     pod 'CloudIt', :git => 'https://github.com/311labs/cloudit-ios.git
     
     There are some issues with google sdk not being included correctly.
+    Framework Search Path
+    "$(PODS_ROOT)/googleplus-ios-sdk" "recursive"
     
 ## Example Usage
 
