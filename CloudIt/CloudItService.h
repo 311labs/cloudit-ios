@@ -33,7 +33,8 @@ typedef NS_ENUM(NSInteger, DuplicateRequestPolicy) {
 
 
 // CIMODEL HELPERS
-
+// fetch a CIModel by UUID
+-(NSURLSessionDataTask*)fetch:(Class)model withUUID:(NSString*)pk onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 // fetch a CIModels by ID
 -(NSURLSessionDataTask*)fetch:(Class)model withKey:(int)pk onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 // fetch a list of CIModels

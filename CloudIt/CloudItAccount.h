@@ -45,6 +45,10 @@
 // login with social
 -(void)loginWithSocial:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 
+// login with social and local viewcontroller
+-(void)loginWithSocialVC:(UIViewController*)vc provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
+
+
 // link a social account with your current account
 -(void)linkSocial:(UIViewController*)viewController provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 

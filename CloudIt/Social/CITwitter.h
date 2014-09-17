@@ -23,27 +23,26 @@
 //    openURL: (NSURL *)url
 //    sourceApplication: (NSString *)sourceApplication
 //    annotation: (id)annotation {
-//        
+//
 //        // first try facebook
 //        BOOL wasHandled = [FBAppCall handleOpenURL:url sourceApplication:sourceApplication];
-//        
+//
 //        // next try google
 //        if !(wasHandled) {
 //            wasHandled = [GPPURLHandler handleURL:url
 //                                sourceApplication:sourceApplication
 //                                       annotation:annotation];
 //        }
-//        
-//        
+//
+//
 //        return wasHandled;
 //    }
 
 #import <Foundation/Foundation.h>
 
 #import "CIAuthProvider.h"
-#import <FacebookSDK/FacebookSDK.h>
 
-@interface CIFacebook : CIAuthProvider
+@interface CITwitter : CIAuthProvider
 
 
 @end

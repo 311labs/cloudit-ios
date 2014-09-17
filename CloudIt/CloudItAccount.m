@@ -67,6 +67,23 @@
     
 }
 
+-(void)handleServerProxy:(NSDictionary*)account provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
+{
+    NSLog(@"social authenticated %@", account);
+    NSString *path = [NSString stringWithFormat:@"rpc/account/login/%@", provider];
+    [[CloudItService shared]POST:path params:account onSuccess:^(CloudItResponse *response) {
+        // the server returns a profile field instead of data field here
+        self.lastSocialProvider = provider;
+        self.user = (CIUser*)response.model;
+        self.email = self.user.email;
+        self.displayName = self.user.displayName;
+        self.thumbnailPath = self.user.thumbnailPath;
+        successBlock(response);
+    } onFailure:^(NSError *error) {
+        failBlock(error);
+    }];
+}
+
 // login with social
 -(void)loginWithSocial:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
@@ -75,24 +92,22 @@
     if (authProvider) {
         [authProvider authenticate:^(NSDictionary *account) {
             // handle account dictonary to cloudit service
-            NSLog(@"social authenticated %@", account);
-            NSString *path = [NSString stringWithFormat:@"rpc/account/login/%@", provider];
-            [[CloudItService shared]POST:path params:account onSuccess:^(CloudItResponse *response) {
-                // the server returns a profile field instead of data field here
-                blockSelf.lastSocialProvider = provider;
-                blockSelf.user = (CIUser*)response.model;
-                blockSelf.email = blockSelf.user.email;
-                blockSelf.displayName = blockSelf.user.displayName;
-                blockSelf.thumbnailPath = blockSelf.user.thumbnailPath;
-                
-            } onFailure:^(NSError *error) {
-                failBlock(error);
-            }];
-            
-            // now we need to authenticate with CloudIt
-            NSLog(@"proxy to server");
-            
-            
+            [blockSelf handleServerProxy:account provider:provider onSuccess:successBlock onFailure:failBlock];
+        } onFailure:^(NSError *error) {
+            // report error
+            failBlock(error);
+        }];
+    }
+}
+
+-(void)loginWithSocialVC:(UIViewController*)vc provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
+{
+    __weak CloudItAccount *blockSelf = self;
+    CIAuthProvider* authProvider = [authProviders objectForKey:provider];
+    if (authProvider) {
+        [authProvider authenticateWithVC: vc onSuccess:^(NSDictionary *account) {
+            // handle account dictonary to cloudit service
+            [blockSelf handleServerProxy:account provider:provider onSuccess:successBlock onFailure:failBlock];
         } onFailure:^(NSError *error) {
             // report error
             failBlock(error);
@@ -109,7 +124,7 @@
 // logout
 -(void)logout:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
-    
+    [[CloudItService shared] GET:@"rpc/account/logout" params:nil onSuccess:successBlock onFailure:failBlock model:[CIUser class]];
 }
 
 // get my data

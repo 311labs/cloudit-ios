@@ -81,6 +81,12 @@
 
 # pragma CIModel Fetchers
 // fetch a CIModels by ID
+-(NSURLSessionDataTask*)fetch:(Class)model withUUID:(NSString*)pk onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
+{
+    NSString* path = [NSString stringWithFormat:@"%@/%@", [model rpcPath], pk];
+    return [self GET:path params:nil onSuccess:successBlock onFailure:failBlock model:model];
+}
+
 -(NSURLSessionDataTask*)fetch:(Class)model withKey:(int)pk onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
     NSString* path = [NSString stringWithFormat:@"%@/%d", [model rpcPath], pk];

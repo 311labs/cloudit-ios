@@ -23,10 +23,25 @@
     // TODO UPDATE THESE ERRORS TO REPORT CORRECTLY 
     failBlock([NSError errorWithDomain:@"world" code:200 userInfo:nil]);
 }
+
+// login with social and local view controller
+-(void)authenticateWithVC:(UIViewController*)vc onSuccess:(CIAuthSuccessCallback)successBlock onFailure:(CIAuthFailureCallback)failBlock
+{
+    // default to no VC support
+    [self authenticate:successBlock onFailure:failBlock];
+}
+
 // try silent authentication if provider supports it
 -(void)trySilentAuthentication:(CIAuthSuccessCallback)successBlock onFailure:(CIAuthFailureCallback)failBlock
 {
     failBlock([NSError errorWithDomain:@"world" code:200 userInfo:nil]);
+}
+
++ (NSError *)errorWithCode:(int)code localizedDescription:(NSString *)description
+{
+    NSDictionary *info = @{NSLocalizedDescriptionKey : description};
+    NSError *error = [NSError errorWithDomain:@"cloudit" code:code userInfo:info];
+    return error;
 }
 
 @end

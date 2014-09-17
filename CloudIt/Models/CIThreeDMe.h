@@ -23,9 +23,18 @@ typedef void (^CIThreeDMeFailureCallback)(NSString *error);
 @property (readonly) NSString* gender;
 @property (readonly) NSString* race;
 @property (readonly) NSNumber* age;
+@property (readonly) NSNumber* weight;
+@property (readonly) NSNumber* height;
+@property (readonly) NSString* eye_color;
+@property (readonly) NSString* hair_color;
+@property (readonly) NSString* skin_color;
+
+@property (readonly) NSString* age_category;
 
 @property (nonatomic) NSString* remoteImagePath;
+
 @property (nonatomic) NSString* remoteBundlePath;
+@property (nonatomic) NSString* remoteHeadPath;
 
 @property (readonly) NSNumber* state;
 
@@ -33,18 +42,27 @@ typedef void (^CIThreeDMeFailureCallback)(NSString *error);
 @property (readonly) BOOL isReady;
 @property (readonly) BOOL isContentDownloaded;
 
-@property (retain) NSString* name;
-@property (retain) UIImage* image;
+@property (readonly) BOOL isImageDownloaded;
+
+@property (readonly) NSMutableDictionary* properties;
+
+@property (strong) NSString* name;
+@property (strong) UIImage* image;
 // local path for this bundle
 @property(nonatomic) NSString *localPath;
 // local path to obj
 @property(nonatomic) NSString *objPath;
+// local path to obj
+@property(nonatomic) NSString *headPath;
 // local path to mtl
 @property(nonatomic) NSString *mtlPath;
 // local path to texture
 @property(nonatomic) NSString *texturePath;
+@property(nonatomic) NSString *faceTexturePath;
+
 // local path to texture
 @property(nonatomic) NSString *imagePath;
+-(UIImage*) loadImage;
 
 
 // will detect and only if a face is detected... (saves cropped image)
@@ -69,7 +87,7 @@ typedef void (^CIThreeDMeFailureCallback)(NSString *error);
 // upload the image for rendering
 -(AFHTTPRequestOperation*)upload:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock progress:(CloudItProgressCallback)progressBlock;
 // wait for processing to be complete
--(void)waitForProcessing:(CIThreeDMeSuccessCallback)successBlock onFailure:(CIThreeDMeFailureCallback)failBlock;
+-(void)waitForProcessing:(CIThreeDMeSuccessCallback)successBlock onUpdate:(CIThreeDMeSuccessCallback)updateBlock onFailure:(CIThreeDMeFailureCallback)failBlock;
 // use this to download the bundle
 -(AFHTTPRequestOperation*)download:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 

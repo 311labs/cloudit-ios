@@ -17,13 +17,20 @@ typedef void (^CIAuthFailureCallback)(NSError *error);
 
 @property(nonatomic, strong) NSDictionary* properties;
 @property(nonatomic, strong) NSDictionary* settings;
+@property(nonatomic, strong) UIViewController* vc;
 
 // initialize provider with settings
 -(id)initWithSettings:(NSDictionary*)settings;
 
 // login with social
 -(void)authenticate:(CIAuthSuccessCallback)successBlock onFailure:(CIAuthFailureCallback)failBlock;
+
+// login with social and local view controller
+-(void)authenticateWithVC:(UIViewController*)vc onSuccess:(CIAuthSuccessCallback)successBlock onFailure:(CIAuthFailureCallback)failBlock;
+
 // try silent authentication if provider supports it
 -(void)trySilentAuthentication:(CIAuthSuccessCallback)successBlock onFailure:(CIAuthFailureCallback)failBlock;
+
++ (NSError *)errorWithCode:(int)code localizedDescription:(NSString *)description;
 
 @end

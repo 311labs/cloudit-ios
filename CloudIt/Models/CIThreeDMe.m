@@ -7,6 +7,9 @@
 
 @property(copy) CIThreeDMeSuccessCallback renderSuccessCallback;
 @property(copy) CIThreeDMeFailureCallback renderFailCallback;
+@property(copy) CIThreeDMeSuccessCallback renderUpdateCallback;
+
+@property (assign) BOOL isFetching;
 
 @property (retain) NSThread* renderThread;
 @property (retain) NSString* lastError;
@@ -58,7 +61,7 @@
 -(void)loadData:(id)data
 {
     [super loadData:data];
-    NSLog(@"data: %@", data);
+//    NSLog(@"data: %@", data);
     if (self.title)
     {
         NSLog(@"title: %@", self.title);
@@ -84,10 +87,18 @@
                 self.remoteImagePath = [item objectForKey:@"url"];
             } else if ([use isEqualToString:@"head"])
             {
+                self.remoteHeadPath = [item objectForKey:@"url"];
+            } else if ([use isEqualToString:@"avatar"])
+            {
                 self.remoteBundlePath = [item objectForKey:@"url"];
             }
         }
     }
+}
+
+-(NSMutableDictionary*) properties
+{
+    return [self.data objectForKey:@"properties"];
 }
 
 -(NSString*) title
@@ -115,6 +126,53 @@
     return [self.data objectForKey:@"age"];
 }
 
+-(NSNumber*) weight
+{
+    return [self.properties objectForKey:@"weight"];
+}
+
+-(NSNumber*) height
+{
+    return [self.properties objectForKey:@"height"];
+}
+
+-(NSString*) eye_color
+{
+    return [self.properties objectForKey:@"eye_color"];
+}
+
+-(NSString*) skin_color
+{
+    return [self.properties objectForKey:@"skin_color"];
+}
+
+-(NSString*) hair_color
+{
+    return [self.properties objectForKey:@"hair_color"];
+}
+
+
+-(NSString*) age_category
+{
+    int iage = [self.age intValue];
+    
+    if (iage < 12) {
+        return @"kid";
+    }
+    else if (iage < 20)
+    {
+        return @"teen";
+    }
+    else if (iage < 50)
+    {
+        return @"adult";
+    }
+    else
+    {
+        return @"old";
+    }
+}
+
 -(NSNumber*) state
 {
     return [self.data objectForKey:@"state"];
@@ -123,32 +181,42 @@
 -(BOOL)isProcessing
 {
     int state = [self intForKey:@"state"];
-    return (state >= 0) && (state < 50) ;
+    return (state >= 0) && (state < 60) ;
 }
 
 -(BOOL)isReady
 {
-    return [self intForKey:@"state"] == 50;
+    return [self intForKey:@"state"] == 60;
 }
 
 -(void)checkIfProcessed
 {
     // TODO see if is updating?
+    self.isFetching = YES;
     [self refresh:^(CloudItResponse *response) {
         // response
-        
+        self.isFetching = NO;
+        if (self.renderUpdateCallback)
+        {
+            self.renderUpdateCallback();
+        }
     } onFailure:^(NSError *error) {
         // error
+        self.isFetching = NO;
         self.lastError = [error localizedDescription];
     }];
 }
 
 -(void)waitForRender
 {
+    self.isFetching = NO;
 	while (self.isProcessing)
     {
         [NSThread sleepForTimeInterval:5.0];
-        [self checkIfProcessed];
+        if (self.isFetching == NO)
+        {
+            [self checkIfProcessed];
+        }
     }
     
     // check if we can download
@@ -170,10 +238,11 @@
     }
 }
 
--(void)waitForProcessing:(CIThreeDMeSuccessCallback)successBlock onFailure:(CIThreeDMeFailureCallback)failBlock
+-(void)waitForProcessing:(CIThreeDMeSuccessCallback)successBlock onUpdate:(CIThreeDMeSuccessCallback)updateBlock onFailure:(CIThreeDMeFailureCallback)failBlock
 {
 	self.renderFailCallback = failBlock;
 	self.renderSuccessCallback = successBlock;
+    self.renderUpdateCallback = updateBlock;
 
 	// spawn a threed to handle all of this processing
 	self.renderThread = [[NSThread alloc] initWithTarget:self
@@ -185,6 +254,27 @@
 - (BOOL)isContentDownloaded
 {
     return [[NSFileManager defaultManager] fileExistsAtPath: self.objPath];
+}
+
+- (BOOL)isImageDownloaded
+{
+    return [[NSFileManager defaultManager] fileExistsAtPath: self.imagePath];
+}
+
+-(UIImage*)loadImage
+{
+    if (self.image) {
+        return self.image;
+    }
+
+    if (!self.isImageDownloaded)
+    {
+        self.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:[NSURL URLWithString:self.remoteImagePath]]];
+        [self save];
+    } else {
+        self.image = [UIImage imageWithContentsOfFile:self.imagePath];
+    }
+    return self.image;
 }
 
 -(AFHTTPRequestOperation*)download:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
@@ -207,6 +297,7 @@
         self.isUpdating = NO;
         if (self.isContentDownloaded)
         {
+            [self loadImage];
             // unzip worked!
             NSLog(@"unzip worked");
             successBlock(nil);
@@ -233,10 +324,12 @@
     NSString *documentsDirectory = [paths objectAtIndex:0];
     NSString *rootPath = [documentsDirectory stringByAppendingPathComponent:@"faces"];
     self.localPath = [rootPath stringByAppendingPathComponent:self.name];
-    self.objPath = [self.localPath stringByAppendingPathComponent:@"inputImage.obj"];
-    self.mtlPath = [self.localPath stringByAppendingPathComponent:@"inputImage.mtl"];
-    self.texturePath = [self.localPath stringByAppendingPathComponent:@"inputImage_tex.jpeg"];
-    self.imagePath = [self.localPath stringByAppendingPathComponent:@"face.jpg"];
+    self.headPath = [self.localPath stringByAppendingPathComponent:@"head.obj"];
+    self.objPath = [self.localPath stringByAppendingPathComponent:@"avatar.obj"];
+    self.mtlPath = [self.localPath stringByAppendingPathComponent:@"avatar.mtl"];
+    self.texturePath = [self.localPath stringByAppendingPathComponent:@"skin.png"];
+    self.faceTexturePath = [self.localPath stringByAppendingPathComponent:@"face.jpg"];
+    self.imagePath = [self.localPath stringByAppendingPathComponent:@"original.jpg"];
 }
 
 #define rad(angle) ((angle) / 180.0 * M_PI)
@@ -337,6 +430,54 @@
     
 }
 
+
+- (UIImage*) resizeImage:(UIImage*)image width:(CGFloat)newWidth {
+    
+    CGFloat width = image.size.width;
+    CGFloat height = image.size.height;
+    
+    //Get thumbnail scale
+    CGFloat scale = newWidth/width;
+    
+    //Find dimensions of thumbnail with const aspect ratio
+    width = newWidth;
+    height = image.size.height*scale;
+    
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    size_t bitsPerComponent = 8;
+    size_t bytesPerPixel = 4;
+    size_t bytesPerRow = bytesPerPixel * width;
+    size_t totalBytes = bytesPerRow * height;
+    
+    //Allocate Image space
+    uint8_t* rawData = malloc(totalBytes);
+    
+    //Create Bitmap of same size
+    CGContextRef context = CGBitmapContextCreate(rawData,width,height,bitsPerComponent,bytesPerRow, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
+    
+    //Draw our image to the context
+    CGContextDrawImage(context, CGRectMake(0, 0, width, height), image.CGImage);
+    
+    //Create Image
+    CGImageRef newImg = CGBitmapContextCreateImage(context);
+    
+    //Release Created Data Structs
+    CGColorSpaceRelease(colorSpace);
+    CGContextRelease(context);
+    free(rawData);
+    
+    //Create UIImage struct around image
+    UIImage* newImage = [UIImage imageWithCGImage:newImg];
+    
+    //Release our hold on the image
+    CGImageRelease(newImg);
+    
+    //return new image!
+    return newImage;
+    
+}
+
+
 -(void)cropToFace: (CIFaceFeature*) face
 {
     CGAffineTransform transform = CGAffineTransformMakeScale(1, -1);
@@ -351,9 +492,9 @@
     
     CGRect biggerRectangle = CGRectInset(faceRect, -1*dx, -1*dy);
     CGImageRef imageRef = CGImageCreateWithImageInRect([self.image CGImage], biggerRectangle);
-    self.image = [UIImage imageWithCGImage:imageRef];
+    UIImage* image = [UIImage imageWithCGImage:imageRef];
     CGImageRelease(imageRef);
-    [self save];
+    self.image = image;
 }
 
 -(BOOL)detectFaces
@@ -365,6 +506,7 @@
         
     }
     self.image = [self fixrotation:self.image];
+//    self.image = [self resizeImage:self.image width:512];
     CIImage *ci = [[CIImage alloc] initWithImage:self.image];
     NSArray *faces = [_faceDetector featuresInImage:ci];
     self.faceCount = faces.count;
@@ -372,6 +514,10 @@
     if (self.faceCount > 0)
     {
         [self cropToFace:faces[0]];
+        if (self.image.size.width > 512) {
+            self.image = [self resizeImage:self.image width:512];
+        }
+        [self save];
         return YES;
     }
     return NO;
@@ -462,7 +608,7 @@
                                      @"title" : self.title,
                                      @"uuid": self.name
                                      } mutableCopy];
-    NSDictionary* files = @{@"picture":@{@"filename":@"face.jpg", @"path":self.imagePath}};
+    NSDictionary* files = @{@"picture":@{@"filename":@"original.jpg", @"path":self.imagePath}};
     
     return [[CloudItService shared] UPLOAD:@"rpc/threed/faceme" files:files params:params onSuccess:^(CloudItResponse *response) {
         // the data should be the new object
