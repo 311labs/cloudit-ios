@@ -45,5 +45,6 @@
 
 @interface CIFacebook : CIAuthProvider
 
++ (BOOL) shareURL:(NSString*)url withText:(NSString*)text withVC:(UIViewController*)vc;
 
 @end

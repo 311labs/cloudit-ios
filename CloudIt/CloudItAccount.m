@@ -9,6 +9,8 @@
 #import "CloudItAccount.h"
 #import "CIGooglePlus.h"
 #import "CIFacebook.h"
+#import "CIInstagram.h"
+#import "CITwitter.h"
 #import "CIModel.h"
 #import "CIUser.h"
 
@@ -43,9 +45,21 @@
         authProvider = [[CIGooglePlus new] initWithSettings:settings];
     } else if ([provider isEqualToString:@"facebook"]) {
         authProvider = [[CIFacebook new] initWithSettings:settings];
+    } else if ([provider isEqualToString:@"instagram"]) {
+        authProvider = [[CIInstagram new] initWithSettings:nil];
     }
     
     [authProviders setObject:authProvider forKey:provider];
+}
+
+-(BOOL)hasSocialLink:(NSString*)provider
+{
+    NSDictionary *social = [self.user objectForKey:@"social_links"];
+    if (social != nil) {
+        NSObject* obj = [social objectForKey:@"instagram"];
+        return (obj != nil);
+    }
+    return NO;
 }
 
 
@@ -55,10 +69,16 @@
     [[CloudItService shared] GET:@"rpc/account/loggedin" params:nil onSuccess:successBlock onFailure:failBlock];
 }
 
+
 -(void)fetchMe:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
-    [[CloudItService shared] GET:@"rpc/account/user/me" params:nil onSuccess:successBlock onFailure:failBlock model:[CIUser class]];
-}
+    [[CloudItService shared] GET:@"rpc/account/user/me" params:nil onSuccess:^(CloudItResponse *response) {
+        //
+        if (response.status > 0) {
+            self.user = (CIUser*)response.model;
+        }
+        successBlock(response);
+    } onFailure:failBlock];}
 
 
 // we will want to be able to login
@@ -66,6 +86,38 @@
 {
     
 }
+
+// login with social and local viewcontroller
+-(void)socialAuth:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
+{
+    __weak CloudItAccount *blockSelf = self;
+    CIAuthProvider* authProvider = [authProviders objectForKey:provider];
+    if (authProvider) {
+        [authProvider authenticate:^(NSDictionary *account) {
+            // handle account dictonary to cloudit service
+            [blockSelf handleServerProxy:account provider:provider onSuccess:successBlock onFailure:failBlock];
+        } onFailure:^(NSError *error) {
+            // report error
+            failBlock(error);
+        }];
+    }
+}
+
+// login with social and local viewcontroller
+-(void)socialAuthNoProxy:(UIViewController*)vc provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
+{
+    CIAuthProvider* authProvider = [authProviders objectForKey:provider];
+    if (authProvider) {
+        [authProvider authenticateWithVC:vc onSuccess:^(NSDictionary *account) {
+            // now fetch user object
+            [self fetchMe:successBlock onFailure:failBlock];
+        } onFailure:^(NSError *error) {
+            // report error
+            failBlock(error);
+        }];
+    }
+}
+
 
 -(void)handleServerProxy:(NSDictionary*)account provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
@@ -119,6 +171,17 @@
 -(void)linkSocial:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock
 {
     
+}
+
++ (BOOL) shareTo:(NSString*)provider link:(NSString*)link withText:(NSString*)text withVC:(UIViewController*)vc
+{
+    if ([provider isEqualToString:@"facebook"]) {
+        return [CIFacebook shareURL:link withText:text withVC:vc];
+    } else if ([provider isEqualToString:@"twitter"]) {
+        return [CITwitter shareURL:link withText:text withVC:vc];
+    }
+    
+    return NO;
 }
 
 // logout

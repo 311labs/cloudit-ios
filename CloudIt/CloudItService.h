@@ -30,7 +30,8 @@ typedef NS_ENUM(NSInteger, DuplicateRequestPolicy) {
 //    We will want to keep the CSRF Token
 -(id)initWithHost:(NSString*)host;
 
-
+@property(nonatomic, strong) NSString *host;
+@property(nonatomic, strong) NSString *csrf_token;
 
 // CIMODEL HELPERS
 // fetch a CIModel by UUID

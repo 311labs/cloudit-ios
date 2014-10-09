@@ -42,11 +42,24 @@
 // we will want to be able to login
 -(void)loginWithUsername:(NSString*)username andPassword:(NSString*)password onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 
+
+// login with social and local viewcontroller
+-(void)socialAuth:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
+
+// login with social and local viewcontroller
+-(void)socialAuthNoProxy:(UIViewController*)vc provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
+
+
++ (BOOL) shareTo:(NSString*)provider link:(NSString*)link withText:(NSString*)text withVC:(UIViewController*)vc;
+
+// NEED TO DEPRECATE THESE CALLS
 // login with social
 -(void)loginWithSocial:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 
 // login with social and local viewcontroller
 -(void)loginWithSocialVC:(UIViewController*)vc provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
+
+-(BOOL)hasSocialLink:(NSString*)provider;
 
 
 // link a social account with your current account

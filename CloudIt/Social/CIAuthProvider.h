@@ -33,4 +33,6 @@ typedef void (^CIAuthFailureCallback)(NSError *error);
 
 + (NSError *)errorWithCode:(int)code localizedDescription:(NSString *)description;
 
++ (void) showWebShare:(NSString*)link withVC:(UIViewController*)vc;
+
 @end

@@ -37,11 +37,17 @@
     failBlock([NSError errorWithDomain:@"world" code:200 userInfo:nil]);
 }
 
+
 + (NSError *)errorWithCode:(int)code localizedDescription:(NSString *)description
 {
     NSDictionary *info = @{NSLocalizedDescriptionKey : description};
     NSError *error = [NSError errorWithDomain:@"cloudit" code:code userInfo:info];
     return error;
+}
+
++ (void) showWebShare:(NSString *)link withVC:(UIViewController*)vc
+{
+    
 }
 
 @end

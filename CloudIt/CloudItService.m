@@ -14,8 +14,6 @@
 
 @interface CloudItService ()
 
-@property(nonatomic, strong) NSString *host;
-@property(nonatomic, strong) NSString *csrf_token;
 @property(nonatomic) AFHTTPSessionManager *manager;
 @property(nonatomic) NSMutableDictionary *activeTasks;
 

@@ -13,7 +13,10 @@
 #import <Accounts/Accounts.h>
 #import <Social/Social.h>
 
+#import "CIWebPopup.h"
+
 #include "CIEXT.h"
+
 
 @interface CITwitter ()
 @property(copy) CIAuthSuccessCallback successCallback;
@@ -166,5 +169,30 @@
 
 }
 
+
++ (BOOL) shareURL:(NSString*)url withText:(NSString*)text withVC:(UIViewController*)vc
+{
+    if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
+    {
+        SLComposeViewController *sheet = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeTwitter];
+        
+        [sheet setInitialText:text];
+        // obfuscation hack
+        [sheet addURL:[NSURL URLWithString:url]];
+        [vc presentViewController:sheet animated:YES completion:nil];
+
+    } else {
+        NSString *twitterShare = [NSString stringWithFormat:@"https://twitter.com/intent/tweet?url=%@&text=%@", url, text];
+        
+        CIWebPopup* popup = [[CIWebPopup alloc] initWithVC:vc title:@"Share" closeOnURLS:@[@"intent/tweet/complete"]];
+        
+        [popup loadURL:twitterShare close:^(NSString *host, NSString *path) {
+            //
+        } error:^(NSError *error) {
+            //
+        }];
+    }
+    return YES;
+}
 
 @end

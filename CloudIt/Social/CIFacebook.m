@@ -7,6 +7,7 @@
 //
 
 #import "CIFacebook.h"
+#import <Social/Social.h>
 
 #include "CIEXT.h"
 
@@ -110,5 +111,38 @@
 
 }
 
++ (BOOL) shareURL:(NSString*)url withText:(NSString*)text withVC:(UIViewController*)vc
+{
+    if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeFacebook])
+    {
+        SLComposeViewController *facebookSheet = [SLComposeViewController composeViewControllerForServiceType:SLServiceTypeFacebook];
+        
+        [facebookSheet setInitialText:text];
+        // obfuscation hack
+        [facebookSheet addURL:[NSURL URLWithString:url]];
+        [vc presentViewController:facebookSheet animated:YES completion:nil];
+        return YES;
+        
+        
+//        NSURL* link = [NSURL URLWithString:url];
+//        [FBDialogs presentShareDialogWithLink:link
+//                                      handler:^(FBAppCall *call, NSDictionary *results, NSError *error) {
+//                                          if(error) {
+//                                              NSLog(@"Error: %@", error.description);
+//                                          } else {
+//                                              NSLog(@"Success!");
+//                                          }
+//                                      }];
+    } else {
+        NSMutableDictionary *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                       text, @"caption",
+                                       url, @"link",
+                                       nil];
+        [FBWebDialogs presentFeedDialogModallyWithSession:nil
+                                               parameters:params
+                                                  handler:nil];
+    }
+    return NO;
+}
 
 @end
