@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 typedef void (^CIWebPopupClose)(NSString *host, NSString* path);
 typedef void (^CIWebPopupError)(NSError *error);

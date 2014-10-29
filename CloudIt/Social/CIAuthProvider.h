@@ -7,10 +7,13 @@
 //
 
 #import <Foundation/Foundation.h>
-#import "CloudItAccount.h"
+#import <UIKit/UIKit.h>
 
 typedef void (^CIAuthSuccessCallback)(NSDictionary *account);
 typedef void (^CIAuthFailureCallback)(NSError *error);
+
+typedef void (^CISocialPostSuccessCallback)(NSString* backend);
+typedef void (^CISocialPostFailureCallback)(NSError *error);
 
 
 @interface CIAuthProvider : NSObject

@@ -44,7 +44,8 @@
 
 @interface CITwitter : CIAuthProvider
 
-+ (BOOL) shareURL:(NSString*)url withText:(NSString*)text withVC:(UIViewController*)vc;
++ (BOOL) postURL:(NSString*)url withText:(NSString*)text onSuccess:(CISocialPostSuccessCallback)successBlock onFailure:(CISocialPostFailureCallback)failBlock;
++ (BOOL) shareURL:(NSString*)url withText:(NSString*)text withVC:(UIViewController*)vc completion:(CISocialPostSuccessCallback)successBlock;
 
 
 @end

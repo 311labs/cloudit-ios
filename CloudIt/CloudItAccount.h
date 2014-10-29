@@ -9,7 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "CloudItService.h"
 #import "CIUser.h"
-
+#import "CIAuthProvider.h"
 
 @interface CloudItAccount : NSObject <NSCoding>
 
@@ -50,7 +50,9 @@
 -(void)socialAuthNoProxy:(UIViewController*)vc provider:(NSString*)provider onSuccess:(CloudItSuccessCallback)successBlock onFailure:(CloudItFailureCallback)failBlock;
 
 
-+ (BOOL) shareTo:(NSString*)provider link:(NSString*)link withText:(NSString*)text withVC:(UIViewController*)vc;
++ (BOOL) postTo:(NSString*)provider link:(NSString*)link withText:(NSString*)text onSuccess:(CISocialPostSuccessCallback)successBlock onFailure:(CISocialPostFailureCallback)failBlock;
+
++ (BOOL) shareTo:(NSString*)provider link:(NSString*)link withText:(NSString*)text withVC:(UIViewController*)vc completion:(CISocialPostSuccessCallback)successBlock;
 
 // NEED TO DEPRECATE THESE CALLS
 // login with social

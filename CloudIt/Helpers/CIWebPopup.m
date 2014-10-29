@@ -81,8 +81,17 @@
     CGRect webFrame = CGRectMake(0, 40, screenFrame.size.width, screenFrame.size.height-40);
     // build title bar
     UIView* tview = [[UIView alloc] initWithFrame: titleFrame];
-    tview.backgroundColor = [UIColor blackColor];
+    tview.backgroundColor = [UIColor whiteColor];
     [self addSubview:tview];
+    
+    CALayer* layer = [tview layer];
+    
+    CALayer *bottomBorder = [CALayer layer];
+    bottomBorder.borderColor = [UIColor darkGrayColor].CGColor;
+    bottomBorder.borderWidth = 1;
+    bottomBorder.frame = CGRectMake(-1, layer.frame.size.height-1, layer.frame.size.width, 1);
+    [bottomBorder setBorderColor:[UIColor blackColor].CGColor];
+    [layer addSublayer:bottomBorder];
     
     UILabel *label = [[UILabel alloc]initWithFrame:titleFrame];
     label.text = title;
@@ -90,7 +99,7 @@
     label.adjustsFontSizeToFitWidth = NO;
     label.clipsToBounds = YES;
     label.backgroundColor = [UIColor clearColor];
-    label.textColor = [UIColor whiteColor];
+    label.textColor = [UIColor blackColor];
     label.textAlignment = NSTextAlignmentCenter;
     [tview addSubview:label];
     self.title = label;
@@ -101,7 +110,7 @@
                action:@selector(cancel:)
      forControlEvents:UIControlEventTouchUpInside];
     [button setTitle:@"x" forState:UIControlStateNormal];
-    button.tintColor = [UIColor whiteColor];
+    button.tintColor = [UIColor blackColor];
     button.frame = CGRectMake(screenFrame.size.width-40, 0.0, 40.0, 40.0);
     button.titleLabel.font = [UIFont systemFontOfSize:26];
     [tview addSubview:button];
@@ -125,6 +134,14 @@
 -(void)show
 {
     CGRect screenFrame = [[UIScreen mainScreen] bounds];
+    CGRect statusBarFrame = [[UIApplication sharedApplication] statusBarFrame];
+    if (statusBarFrame.size.height > 20) {
+        screenFrame.size.height -= (statusBarFrame.size.height - 20);
+        screenFrame.origin.y = (statusBarFrame.size.height - 20);
+    } else {
+        screenFrame.size.height -= 20;
+        screenFrame.origin.y = 20;
+    }
 
     [UIView animateWithDuration:0.3
                      animations:^{

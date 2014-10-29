@@ -44,9 +44,11 @@
     {
         authProvider = [[CIGooglePlus new] initWithSettings:settings];
     } else if ([provider isEqualToString:@"facebook"]) {
-        authProvider = [[CIFacebook new] initWithSettings:settings];
+        authProvider = [[CIFacebook shared] initWithSettings:settings];
     } else if ([provider isEqualToString:@"instagram"]) {
         authProvider = [[CIInstagram new] initWithSettings:nil];
+    } else if ([provider isEqualToString:@"twitter"]) {
+        authProvider = [[CITwitter new] initWithSettings:nil];
     }
     
     [authProviders setObject:authProvider forKey:provider];
@@ -173,12 +175,23 @@
     
 }
 
-+ (BOOL) shareTo:(NSString*)provider link:(NSString*)link withText:(NSString*)text withVC:(UIViewController*)vc
++ (BOOL) postTo:(NSString*)provider link:(NSString*)link withText:(NSString*)text onSuccess:(CISocialPostSuccessCallback)successBlock onFailure:(CISocialPostFailureCallback)failBlock
 {
     if ([provider isEqualToString:@"facebook"]) {
-        return [CIFacebook shareURL:link withText:text withVC:vc];
+        return [CIFacebook postURL:link withText:text onSuccess:successBlock onFailure:failBlock];
     } else if ([provider isEqualToString:@"twitter"]) {
-        return [CITwitter shareURL:link withText:text withVC:vc];
+        return [CITwitter postURL:link withText:text onSuccess:successBlock onFailure:failBlock];
+    }
+    
+    return NO;
+}
+
++ (BOOL) shareTo:(NSString*)provider link:(NSString*)link withText:(NSString*)text withVC:(UIViewController*)vc completion:(CISocialPostSuccessCallback)successBlock
+{
+    if ([provider isEqualToString:@"facebook"]) {
+        return [CIFacebook shareURL:link withText:text withVC:vc completion:successBlock];
+    } else if ([provider isEqualToString:@"twitter"]) {
+        return [CITwitter shareURL:link withText:text withVC:vc completion:successBlock];
     }
     
     return NO;

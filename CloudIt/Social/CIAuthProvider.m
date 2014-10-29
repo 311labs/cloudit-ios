@@ -7,6 +7,8 @@
 //
 
 #import "CIAuthProvider.h"
+#import "CloudItAccount.h"
+
 
 @implementation CIAuthProvider
 

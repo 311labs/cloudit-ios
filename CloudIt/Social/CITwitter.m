@@ -169,8 +169,63 @@
 
 }
 
++ (BOOL) postURL:(NSString*)url withText:(NSString*)text onSuccess:(CISocialPostSuccessCallback)successBlock onFailure:(CISocialPostFailureCallback)failBlock
+{
+    // Create an account store object.
+    ACAccountStore *accountStore = [[ACAccountStore alloc] init];
+    
+    // Create an account type that ensures Twitter accounts are retrieved.
+    ACAccountType *accountType = [accountStore accountTypeWithAccountTypeIdentifier:ACAccountTypeIdentifierTwitter];
+    
+    // Request access from the user to use their Twitter accounts.
+    [accountStore requestAccessToAccountsWithType:accountType options:nil completion:^(BOOL granted, NSError *error) {
+        if(granted) {
+            // Get the list of Twitter accounts.
+            NSArray *accountsArray = [accountStore accountsWithAccountType:accountType];
+            
+            if ([accountsArray count] > 0) {
+                // Grab the initial Twitter account to tweet from.
+                ACAccount *twitterAccount = [accountsArray objectAtIndex:0];
+                SLRequest *postRequest = nil;
+                
+                // Post Text
+                NSString *tweet = [NSString stringWithFormat:@"%@\n%@", text, url];
+                NSDictionary *message = @{@"status": tweet};
+                
+                // URL
+                NSURL *requestURL = [NSURL URLWithString:@"https://api.twitter.com/1/statuses/update.json"];
+                
+                // Request
+                postRequest = [SLRequest requestForServiceType:SLServiceTypeTwitter requestMethod:SLRequestMethodPOST URL:requestURL parameters:message];
+                
+                // Set Account
+                postRequest.account = twitterAccount;
+                
+                // Post
+                [postRequest performRequestWithHandler:^(NSData *responseData, NSHTTPURLResponse *urlResponse, NSError *error) {
+                        if (responseData)
+                        {
+                            if ([urlResponse statusCode] == 200) {
+                                successBlock(@"twitter");
+                            } else {
+                                failBlock(error);
+                            }
+                        } else {
+                            failBlock(error);
+                        }
+                }];
+                return;
+            } else {
+                failBlock([CIAuthProvider errorWithCode:500 localizedDescription:@"no accounts setup"]);
+                return;
+            }
+        }
+        failBlock(error);
+    }];
+    return YES;
+}
 
-+ (BOOL) shareURL:(NSString*)url withText:(NSString*)text withVC:(UIViewController*)vc
++ (BOOL) shareURL:(NSString*)url withText:(NSString*)text withVC:(UIViewController*)vc completion:(CISocialPostSuccessCallback)successBlock
 {
     if ([SLComposeViewController isAvailableForServiceType:SLServiceTypeTwitter])
     {
@@ -179,7 +234,9 @@
         [sheet setInitialText:text];
         // obfuscation hack
         [sheet addURL:[NSURL URLWithString:url]];
-        [vc presentViewController:sheet animated:YES completion:nil];
+        [vc presentViewController:sheet animated:YES completion:^{
+            successBlock(@"twitter");
+        }];
 
     } else {
         NSString *twitterShare = [NSString stringWithFormat:@"https://twitter.com/intent/tweet?url=%@&text=%@", url, text];
@@ -188,8 +245,10 @@
         
         [popup loadURL:twitterShare close:^(NSString *host, NSString *path) {
             //
+            successBlock(@"twitter");
         } error:^(NSError *error) {
             //
+            successBlock(@"twitter");
         }];
     }
     return YES;

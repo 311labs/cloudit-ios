@@ -137,14 +137,14 @@
         }
         if (httpResponse.statusCode == 200) {
             [self updateCSRF:responseObject];
-            NSLog(@"response: %@", responseObject);
+//            NSLog(@"response: %@", responseObject);
             if (model) {
-                successBlock([[CloudItResponse new] initWithClass:model andResponse:responseObject]);
+                if (successBlock) successBlock([[CloudItResponse new] initWithClass:model andResponse:responseObject]);
             } else {
-                successBlock([[CloudItResponse new] initWithResponse:responseObject]);
+                if (successBlock) successBlock([[CloudItResponse new] initWithResponse:responseObject]);
             }
         } else {
-            failBlock([NSError errorWithDomain:@"cloudit" code:httpResponse.statusCode userInfo:nil]);
+            if (failBlock) failBlock([NSError errorWithDomain:@"cloudit" code:httpResponse.statusCode userInfo:nil]);
         }
         
     } failure:^(NSURLSessionDataTask *task, NSError *error) {
@@ -155,7 +155,7 @@
             if (self.duplicateRequestPolicy != DUP_REQ_ALLOW) {
                 [self.activeTasks removeObjectForKey:path];
             }
-            failBlock(error);
+            if (failBlock) failBlock(error);
         }
         NSLog(@"Error: %@", error);
     }];
@@ -182,16 +182,16 @@
         if (httpResponse.statusCode == 200) {
             [self updateCSRF:responseObject];
             if (model) {
-                successBlock([[CloudItResponse new] initWithClass:model andResponse:responseObject]);
+                if (successBlock) successBlock([[CloudItResponse new] initWithClass:model andResponse:responseObject]);
             } else {
-                successBlock([[CloudItResponse new] initWithResponse:responseObject]);
+                if (successBlock) successBlock([[CloudItResponse new] initWithResponse:responseObject]);
             }
         } else {
-            failBlock([NSError errorWithDomain:@"cloudit" code:httpResponse.statusCode userInfo:nil]);
+            if (failBlock) failBlock([NSError errorWithDomain:@"cloudit" code:httpResponse.statusCode userInfo:nil]);
         }
         
     } failure:^(NSURLSessionDataTask *task, NSError *error) {
-        failBlock(error);
+        if (failBlock) failBlock(error);
         NSLog(@"Error: %@", error);
     }];
     // [task resume]; // is this needed???
@@ -252,7 +252,7 @@
     [manager HTTPRequestOperationWithRequest:request
                                      success:^(AFHTTPRequestOperation *operation, id responseObject) {
                                          successBlock([[CloudItResponse new] initWithClass:model andResponse:responseObject]);
-                                         NSLog(@"Success %@", responseObject);
+//                                         NSLog(@"Success %@", responseObject);
                                      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
                                          NSLog(@"Failure %@", error.description);
                                          failBlock(error);
